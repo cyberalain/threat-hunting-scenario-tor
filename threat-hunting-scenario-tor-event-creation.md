@@ -69,14 +69,14 @@ DeviceNetworkEvents
 
 // User shopping list was created and, changed, or deleted
 DeviceFileEvents
-| where FileName contains "shopping-list.txt"
+| where FileName contains "Onlymy-list.txt"
 ```
 
 ---
 
 ## Created By:
-- **Author Name**: Josh Madakor
-- **Author Contact**: https://www.linkedin.com/in/joshmadakor/
+- **Author Name**: Alain Anye
+- **Author Contact**: linkedin.com/in/alain-ade-anye-746804245 
 - **Date**: August 31, 2024
 
 ## Validated By:
