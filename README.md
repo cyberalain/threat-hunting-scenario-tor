@@ -46,54 +46,58 @@ DeviceFileEvents
 
 ### 2. Searched the `DeviceProcessEvents` Table
 
-Searched for any `ProcessCommandLine` that contained the string "tor-browser-windows-x86_64-portable-14.0.1.exe". Based on the logs returned, at `2024-11-08T22:16:47.4484567Z`, an employee on the "threat-hunt-lab" device ran the file `tor-browser-windows-x86_64-portable-14.0.1.exe` from their Downloads folder, using a command that triggered a silent installation.
+Searched the DeviceProcessEvents table for any ProcessCommandLine that contained the string “tor-browser-windows-x86_64-portable-14.0.7.exe” Based on the logs retumed, At 2025-03-20T13:34:57.1663781Z, on the device named alino-vm-test, the user alinolab initiated the execution of the file tor-browser-windows-x86_64-portable-14.0.7.exe located in the Downloads folder.
 
 **Query used to locate event:**
 
 ```kql
 
-DeviceProcessEvents  
-| where DeviceName == "threat-hunt-lab"  
-| where ProcessCommandLine contains "tor-browser-windows-x86_64-portable-14.0.1.exe"  
+DeviceProcessEvents
+| where DeviceName == "alino-vm-test"
+| where ProcessCommandLine contains "tor-browser-windows-x86_64-portable-14.0.7.exe"
 | project Timestamp, DeviceName, AccountName, ActionType, FileName, FolderPath, SHA256, ProcessCommandLine
 ```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/b07ac4b4-9cb3-4834-8fac-9f5f29709d78">
+![image](https://github.com/user-attachments/assets/b18cde9e-2ccb-4b92-b4d9-30d6825a255f)
+
 
 ---
 
 ### 3. Searched the `DeviceProcessEvents` Table for TOR Browser Execution
 
-Searched for any indication that user "employee" actually opened the TOR browser. There was evidence that they did open it at `2024-11-08T22:17:21.6357935Z`. There were several other instances of `firefox.exe` (TOR) as well as `tor.exe` spawned afterwards.
+Searched the DeviceProcessEvents table for any indication that user “alinolab” actually opened the tor browser. There was evidence that they did open it at : 2025-03-20T13:41:36.4732496Z
+There were several other instances of firefox.exe (Tor) as well as tor.exe spawned afterwards.
 
 **Query used to locate events:**
 
 ```kql
-DeviceProcessEvents  
-| where DeviceName == "threat-hunt-lab"  
-| where FileName has_any ("tor.exe", "firefox.exe", "tor-browser.exe")  
-| project Timestamp, DeviceName, AccountName, ActionType, FileName, FolderPath, SHA256, ProcessCommandLine  
+DeviceProcessEvents
+| where DeviceName == "alino-vm-test"
+| where FileName has_any ("tor.exe", "firefox.exe", "torbrowser.exe")
+| project Timestamp, DeviceName, AccountName, ActionType, FileName, FolderPath, SHA256, ProcessCommandLine
 | order by Timestamp desc
 ```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/b13707ae-8c2d-4081-a381-2b521d3a0d8f">
+![image](https://github.com/user-attachments/assets/2e54655d-fea1-42ed-a66c-b54d8340537a)
+
 
 ---
 
 ### 4. Searched the `DeviceNetworkEvents` Table for TOR Network Connections
 
-Searched for any indication the TOR browser was used to establish a connection using any of the known TOR ports. At `2024-11-08T22:18:01.1246358Z`, an employee on the "threat-hunt-lab" device successfully established a connection to the remote IP address `176.198.159.33` on port `9001`. The connection was initiated by the process `tor.exe`, located in the folder `c:\users\employee\desktop\tor browser\browser\torbrowser\tor\tor.exe`. There were a couple of other connections to sites over port `443`.
+Searched  the DeviceNetwork Events table for any indication the tor browser was used to establish a connection using any of the known tor ports. On 2025-03-20T13:42:20.5974479Z, on the device named alino-vm-test, the user alinolab attempted to establish a network connection using the application firefox.exe. This attempt resulted in a ConnectionFailed event while trying to connect to the IP address 127.0.0.1 on port 9150.​ In the context of the Tor Browser, firefox.exe is often utilized as the browser component, and it typically communicates with the Tor network through a local proxy. By default, the Tor Browser is configured to route its traffic through 127.0.0.1 (localhost) on port 9150, which serves as the SOCKS proxy for anonymizing web traffic. ​ Therefore, this event likely indicates that the Tor Browser's Firefox component attempted to connect to the Tor network via its local SOCKS proxy but encountered a connection failure. This could be due to the Tor service not running, misconfiguration, or network restrictions preventing the connection. There were a few other connections.
 
 **Query used to locate events:**
 
 ```kql
-DeviceNetworkEvents  
-| where DeviceName == "threat-hunt-lab"  
-| where InitiatingProcessAccountName != "system"  
-| where InitiatingProcessFileName in ("tor.exe", "firefox.exe")  
-| where RemotePort in ("9001", "9030", "9040", "9050", "9051", "9150", "80", "443")  
-| project Timestamp, DeviceName, InitiatingProcessAccountName, ActionType, RemoteIP, RemotePort, RemoteUrl, InitiatingProcessFileName, InitiatingProcessFolderPath  
+DeviceNetworkEvents
+| where DeviceName  == "alino-vm-test"
+| where InitiatingProcessAccountName != "system"
+| where RemotePort  in ("9001","9030","9051","9150", "86","443")
+| project Timestamp, DeviceName, InitiatingProcessAccountDomain, ActionType, RemoteIP, RemotePort, RemoteUrl, InitiatingProcessFileName
 | order by Timestamp desc
+
 ```
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/87a02b5b-7d12-4f53-9255-f5e750d0e3cb">
+![image](https://github.com/user-attachments/assets/8652147d-0467-4d8e-ac3e-4689b1b8017e)
+
 
 ---
 
